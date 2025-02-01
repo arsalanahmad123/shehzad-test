@@ -9,9 +9,12 @@ const todoSchema = z.object({
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+
+        const id = (await params).id; 
+
         const user = await currentUser();
         if (!user) {
             return NextResponse.json(
@@ -21,7 +24,7 @@ export async function GET(
         }
 
         const todo = await db.task.findUnique({
-            where: { id: params.id, userId: user.id },
+            where: { id: id, userId: user.id },
         });
 
         if (!todo) {
@@ -43,9 +46,10 @@ export async function GET(
 
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const id = (await params).id; 
         const user = await currentUser();
         if (!user) {
             return NextResponse.json(
@@ -58,7 +62,7 @@ export async function PUT(
         const validatedFields = todoSchema.parse(json);
 
         const todo = await db.task.update({
-            where: { id: params.id, userId: user.id },
+            where: { id: id, userId: user.id },
             data: { content: validatedFields.content },
         });
 
@@ -80,9 +84,10 @@ export async function PUT(
 
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const id = (await params).id;
         const user = await currentUser();
         if (!user) {
             return NextResponse.json(
@@ -92,7 +97,7 @@ export async function DELETE(
         }
 
         await db.task.delete({
-            where: { id: params.id, userId: user.id },
+            where: { id: id, userId: user.id },
         });
 
         return NextResponse.json({ success: true });
